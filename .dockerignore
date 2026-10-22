@@ -1,0 +1,17 @@
+.git
+.gitignore
+.vscode
+.idea
+node_modules
+bower_components
+.tmp
+dist
+media
+*.sqlite3
+**/__pycache__
+*.py[cod]
+.env
+env
+.venv
+_SpecRunner.html
+.functional-tests

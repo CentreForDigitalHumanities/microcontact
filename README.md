@@ -83,6 +83,10 @@ You are advised to run the Django-based backend as a WSGI application from your 
 
 Serve the static assets under `/static/`.
 
+Containers
+----------
+A containerized setup for Podman/Docker is available. See [docs/containerization.md](docs/containerization.md) for details.
+
 Directory reference
 -------------------
 
