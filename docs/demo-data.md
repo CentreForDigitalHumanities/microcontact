@@ -86,7 +86,70 @@ conversion, API/media access, upload validation and admin publication:
 DJANGO_SETTINGS_MODULE=microcontact.settings python -m pytest recordings/seed_demo_data_test.py
 ```
 
-These tests use a temporary database and media directory. They do not automate
-the browser's Google Maps interactions. Public visibility here refers to API
-listing/detail access; the existing media serving configuration does not enforce
-recording visibility on a known file URL.
+These Python tests use a temporary database and media directory. Public
+visibility here refers to API listing/detail access; the existing media serving
+configuration does not enforce recording visibility on a known file URL.
+
+### Browser map tests
+
+The separate `e2e/` package runs four Playwright tests in Chromium against a
+running Microcontact instance and the real Google Maps/Places services:
+
+1. Open the contributions map, switch to participation, and return to a working
+   contributions map.
+2. Click Buenos Aires, check its three dialect groups and speaker details, then
+   click Play and verify the audio's playback time advances.
+3. Check all seven public demo markers and the absence of private-only Caxias
+   do Sul; Toronto must show only its two public recordings.
+4. Choose Canada, type Toronto, select the Ontario autocomplete suggestion, and
+   check the upload form's location and coordinates.
+
+Use Node 22 or newer for this package. Its dependencies and lockfile are
+independent of the application's legacy Node build. The app needs a working
+Google Maps key with Places access for the hostname used by the browser.
+
+Start the app and seed it first. For the Compose setup, from the repository root:
+
+```sh
+podman compose up -d
+podman compose exec app python manage.py seed_demo_data
+```
+
+Install the browser runner separately:
+
+```sh
+cd e2e
+npm ci
+npx playwright install chromium
+E2E_BASE_URL=http://127.0.0.1:8002 npm test
+```
+
+Set `E2E_BASE_URL` to the app's published address (match `APP_PORT` in `.env`).
+Without this override the runner uses `http://127.0.0.1:8000`. It does not read
+the app's `.env` or start/rebuild containers. On supported Linux distributions,
+`npx playwright install --with-deps chromium` can also install browser system
+dependencies. See [Playwright's installation guidance](https://playwright.dev/docs/intro).
+
+Tests use fresh browser sessions, an English locale, one worker and no automatic
+retries. They perform no uploads, moderation changes, seeding or resets. Existing
+unrelated recordings are allowed; the demo scenarios must retain their original
+names and publication states. If you edited those scenarios, explicitly restore
+them with `seed_demo_data --reset` before running the tests. Missing demo places
+produce a setup failure rather than skipped tests.
+
+For a visible browser or the last run's HTML report, from `e2e/`:
+
+```sh
+E2E_BASE_URL=http://127.0.0.1:8002 npm run test:headed
+npm run report
+```
+
+Failures retain screenshots and traces in `e2e/test-results/`; the report is in
+`e2e/playwright-report/`. Both directories and the runner's dependencies are
+ignored by Git and excluded from the app image build context. Uncaught browser
+exceptions and Maps API errors fail the tests. The optional development
+livereload server's connection error does not. These live integration tests
+also depend on Google service availability, key configuration and network access.
+
+The older CasperJS smoke test remains available through Grunt; this Playwright
+suite is the browser regression baseline for dependency upgrades.

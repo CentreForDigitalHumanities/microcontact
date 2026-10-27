@@ -50,6 +50,20 @@ podman compose exec app python manage.py seed_demo_data --reset
 
 The database and generated audio persist in the existing `db` and `media` volumes.
 
+## Browser tests
+
+Run the separate Playwright package on the host against the running app's
+published port. See [browser test setup](demo-data.md#browser-map-tests) for
+installation and the four covered workflows. For an app on port 8002, after
+installing the runner and Chromium:
+
+```sh
+cd e2e
+E2E_BASE_URL=http://127.0.0.1:8002 npm test
+```
+
+The app container needs no test-runner dependencies or rebuild for these tests.
+
 ## Process handling
 
 The image declares `STOPSIGNAL SIGINT` to use Django's `KeyboardInterrupt` exit path.

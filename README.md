@@ -87,6 +87,13 @@ Containers
 ----------
 A containerized setup for Podman/Docker is available. See [docs/containerization.md](docs/containerization.md) for details.
 
+Browser tests
+-------------
+Four Playwright tests in `e2e/` cover map navigation, recording discovery and
+playback, public/private marker visibility, and country/city selection. They
+run against an existing app with live Google Maps and seeded demo data, using
+their own Node dependencies. See [setup and commands](docs/demo-data.md#browser-map-tests).
+
 Directory reference
 -------------------
 
