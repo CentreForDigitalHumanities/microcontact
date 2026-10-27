@@ -31,6 +31,25 @@ To create an administrator in the running container:
 podman compose exec app python manage.py createsuperuser
 ```
 
+## Demo data
+
+Populate the running local instance with fictional profiles and playable synthetic audio:
+
+```sh
+podman compose exec app python manage.py seed_demo_data
+```
+
+This adds 15 recordings (12 public, three private) at eight locations, reusing
+the migrated reference data. It is safe to rerun: existing demo recordings and
+moderation edits are kept. To recreate only the tagged demo recordings and
+their audio:
+
+```sh
+podman compose exec app python manage.py seed_demo_data --reset
+```
+
+The database and generated audio persist in the existing `db` and `media` volumes.
+
 ## Process handling
 
 The image declares `STOPSIGNAL SIGINT` to use Django's `KeyboardInterrupt` exit path.
