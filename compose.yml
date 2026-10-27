@@ -1,0 +1,38 @@
+name: microcontact
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        APP_UID: 1000
+        APP_GID: 1000
+    image: localhost/microcontact:dev
+    init: true
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - db:/data
+      - media:/app/media
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import sys, urllib.request;
+          sys.exit(0 if urllib.request.urlopen(
+          'http://127.0.0.1:8000/', timeout=3).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  db:
+  media:
