@@ -95,8 +95,9 @@ def test_public_api_and_media(seeded, client, settings):
         assert not {'name', 'email', 'phone', 'relation_to_speaker', 'generation'} & set(row)
         response = client.get(row['recording_web'])
         assert response.status_code == 200
+        # The test client's streaming iterator closes the response on exhaustion.
+        # Closing it again can close PostgreSQL's enclosing test transaction.
         assert b''.join(response.streaming_content)
-        response.close()
     places = client.get('/api/places/').json()
     assert {r['id'] for place in places for r in place['recordings']} == public_ids
     assert sum(bool(place['recordings']) for place in places) == 7

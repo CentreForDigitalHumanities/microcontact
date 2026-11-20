@@ -76,12 +76,10 @@ COPY --chown=app:app client/image ./client/image
 COPY --chown=app:app client/script/mock ./client/script/mock
 
 RUN chmod +x /app/container/entrypoint.sh \
-    && mkdir -p /data media \
-    && touch /data/.keep \
-    && chown -R app:app /app /data media
+    && mkdir -p media \
+    && chown -R app:app /app media
 
 ENV DJANGO_SETTINGS_MODULE=microcontact.settings_container \
-    DJANGO_DB_PATH=/data/db.sqlite3 \
     DJANGO_MEDIA_ROOT=/app/media \
     PYTHONUNBUFFERED=1
 
