@@ -1,0 +1,63 @@
+name: microcontact
+
+services:
+  db:
+    image: docker.io/library/postgres:18
+    environment:
+      POSTGRES_DB: ${DJANGO_DB_NAME:-microcontact}
+      POSTGRES_USER: ${DJANGO_DB_USER:-microcontact}
+      POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD:-microcontact}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        APP_UID: 1000
+        APP_GID: 1000
+    image: localhost/microcontact:dev
+    init: true
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DJANGO_DB_HOST: db
+      DJANGO_DB_NAME: ${DJANGO_DB_NAME:-microcontact}
+      DJANGO_DB_USER: ${DJANGO_DB_USER:-microcontact}
+      DJANGO_DB_PASSWORD: ${DJANGO_DB_PASSWORD:-microcontact}
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import sys, urllib.request;
+          sys.exit(0 if urllib.request.urlopen(
+          'http://127.0.0.1:8000/', timeout=3).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  media:
